@@ -1,7 +1,5 @@
 package com.jlox;
 
-import com.jlox.TokenType;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -92,13 +90,13 @@ public class Scanner {
             case '>':
                 addToken(match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
                 break;
-            // TODO add support for /*comments */
-            // this comments should support nested comments too
             case '/':
                 if (match('/'))
                     // a comment goes until the end of the line.
                     while (peek() != '\n' && !isAtEnd())
                         advance();
+                else if (match('*'))
+                    starComment();
                 else
                     addToken(TokenType.SLASH);
 
@@ -163,6 +161,30 @@ public class Scanner {
                 advance();
         }
         addToken(TokenType.NUMBER, Double.parseDouble(source.substring(start, current)));
+    }
+
+    /*
+     * 
+     */
+    private void starComment() {
+
+        // NOTE: I'm not sure if this works
+        // this way scanner would not be able
+        // to know within our comment if well formed or not
+        // it would just keep ignoring the code if
+        // a */ is not found
+        while (peek() != '*' && peekNext() != '/') {
+            // if /* is found it will ignore the comment
+            // recursively.
+            // nested comments sould be well formed though
+            if (peek() == '/' && peekNext() == '*')
+                starComment();
+            // while chars don't be */ keep ignoring the code
+            advance();
+        }
+        // advance two positions which are the */
+        advance();
+        advance();
     }
 
     private boolean match(char expected) {
